@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0f172a" />
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="電気容量計算">
+
+<title>3相3線式200V 電気容量計算</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--ink:#172033;--muted:#64748b;--line:#dbe3ef;--accent:#2563eb;--accent2:#e8f0ff;--good:#15803d;--warn:#b45309;--bad:#b91c1c;--dark:#0f172a;--shadow:0 10px 30px rgba(15,23,42,.08)}
+*{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;padding:20px max(16px,calc((100vw - 1180px)/2));box-shadow:var(--shadow)}
+header h1{margin:0;font-size:clamp(20px,4vw,30px)} header p{margin:7px 0 0;color:#cbd5e1;font-size:13px}
+main{max-width:1180px;margin:20px auto 48px;padding:0 14px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:16px;box-shadow:var(--shadow);overflow:hidden}
+.cardhead{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}.cardhead h2{margin:0;font-size:17px}.body{padding:16px 18px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px}.field input,.field select{width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:11px 12px;font:inherit;background:#fff;color:var(--ink);outline:none}.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+button{border:0;border-radius:10px;padding:10px 13px;font-weight:700;cursor:pointer}.primary{background:var(--accent);color:#fff}.ghost{background:#eef2f7;color:#334155}.danger{background:#fee2e2;color:#991b1b}.mini{padding:7px 10px;font-size:12px}
+.tablewrap{overflow-x:auto}.loads{width:100%;border-collapse:collapse;min-width:740px}.loads th{font-size:12px;text-align:left;color:#475569;background:#f8fafc;padding:9px 7px;border-bottom:1px solid var(--line)}.loads td{padding:7px;border-bottom:1px solid #edf2f7}.loads input,.loads select{width:100%;min-width:84px;border:1px solid #cbd5e1;border-radius:8px;padding:8px;font:inherit}.loads .name{min-width:145px}.loads .num{min-width:95px}.computed{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700;color:#334155}
+.results{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{border:1px solid var(--line);background:#fbfdff;border-radius:12px;padding:13px}.metric .label{font-size:11px;color:var(--muted);font-weight:700}.metric .value{font-size:22px;font-weight:800;margin-top:4px;word-break:break-word}.metric .unit{font-size:12px;color:var(--muted);margin-left:3px}.metric.big{background:var(--accent2);border-color:#b9d0ff}.metric.bad{background:#fff1f2;border-color:#fecdd3}.metric.good{background:#f0fdf4;border-color:#bbf7d0}
+.phase{display:flex;gap:8px;margin-top:12px}.phase>div{flex:1;text-align:center;border-radius:10px;padding:10px;background:#f8fafc;border:1px solid var(--line)}.phase b{display:block;font-size:20px;margin-top:3px}
+.note{font-size:12px;line-height:1.65;color:#64748b}.warning{margin-top:12px;border-radius:10px;padding:11px 12px;font-size:13px;font-weight:700}.warning.ok{background:#ecfdf5;color:#166534}.warning.ng{background:#fef2f2;color:#991b1b}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.footer-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.results{grid-template-columns:repeat(2,minmax(0,1fr))}.body{padding:13px}.cardhead{padding:13px 14px}.metric .value{font-size:19px}}
+@media(max-width:480px){main{padding:0 10px}.results{grid-template-columns:1fr 1fr}.metric{padding:10px}.metric .value{font-size:17px}.phase{flex-direction:column}header{padding:17px 14px}.toolbar button{flex:1}}
+@media print{header,.toolbar,.footer-actions,.removeCol{display:none!important}body{background:#fff}.card{box-shadow:none;break-inside:avoid}main{max-width:none;margin:0}.tablewrap{overflow:visible}.loads{min-width:0;font-size:10px}}
+</style>
+</head>
+<body>
+<header><h1>3相3線式200V 電気容量計算</h1><p>1Φ200V＋3Φ200V 混合回路 / R・S・T相電流 / ブレーカー / 電線 / 電圧降下</p></header>
+<main>
+<section class="card"><div class="cardhead"><h2>1. 基本条件</h2><div class="toolbar"><button id="installBtn" class="primary mini" onclick="installApp()" style="display:none">ホーム画面に追加</button><button class="ghost mini" onclick="showInstallHelp()">追加方法</button><button class="ghost mini" onclick="loadSample()">サンプル</button><button class="ghost mini" onclick="resetAll()">クリア</button></div></div><div class="body"><div class="grid">
+<div class="field"><label>基本電圧 (V)</label><input id="voltage" type="number" value="200" min="1" step="1"></div>
+<div class="field"><label>配線距離・片道 (m)</label><input id="distance" type="number" value="50" min="0" step="1"></div>
+<div class="field"><label>安全率 (倍)</label><input id="safety" type="number" value="1.25" min="0" step="0.05"></div>
+</div></div></section>
+
+<section class="card"><div class="cardhead"><h2>2. 負荷入力（1Φ200V）</h2><button class="primary mini" onclick="add1p()">＋ 負荷追加</button></div><div class="body tablewrap"><table class="loads"><thead><tr><th>No.</th><th>負荷名称</th><th>消費電力/台 (kW)</th><th>台数</th><th>接続相</th><th>負荷電流 (A)</th><th>小計 (kW)</th><th class="removeCol"></th></tr></thead><tbody id="oneBody"></tbody></table></div></section>
+
+<section class="card"><div class="cardhead"><h2>3. 負荷入力（3Φ200V）</h2><button class="primary mini" onclick="add3p()">＋ 負荷追加</button></div><div class="body tablewrap"><table class="loads"><thead><tr><th>No.</th><th>負荷名称</th><th>消費電力/台 (kW)</th><th>台数</th><th>負荷電流 (A)</th><th>小計 (kW)</th><th class="removeCol"></th></tr></thead><tbody id="threeBody"></tbody></table></div></section>
+
+<section class="card"><div class="cardhead"><h2>4. 計算結果</h2><button class="primary" onclick="calculate()">再計算</button></div><div class="body">
+<div class="results">
+<div class="metric"><div class="label">総容量</div><div class="value"><span id="totalKW">0.00</span><span class="unit">kW</span></div></div>
+<div class="metric big"><div class="label">最大相電流</div><div class="value"><span id="maxPhase">0.00</span><span class="unit">A</span></div></div>
+<div class="metric"><div class="label">安全率考慮後</div><div class="value"><span id="safeCurrent">0.00</span><span class="unit">A</span></div></div>
+<div class="metric big"><div class="label">推奨ブレーカー</div><div class="value"><span id="breaker">-</span></div></div>
+<div class="metric"><div class="label">推奨電線</div><div class="value" id="wire">-</div></div>
+<div class="metric"><div class="label">電線許容電流</div><div class="value"><span id="ampacity">-</span><span class="unit">A</span></div></div>
+<div class="metric" id="dropCard"><div class="label">電圧降下率</div><div class="value"><span id="dropPct">0.00</span><span class="unit">%</span></div></div>
+<div class="metric" id="dropVCard"><div class="label">電圧降下差</div><div class="value"><span id="dropV">0.00</span><span class="unit">V</span></div></div>
+</div>
+<div class="phase"><div>R相電流<b><span id="rA">0.00</span> A</b></div><div>S相電流<b><span id="sA">0.00</span> A</b></div><div>T相電流<b><span id="tA">0.00</span> A</b></div></div>
+<div id="dropWarning" class="warning ok">電圧降下：6V以内</div>
+<div class="footer-actions"><button class="ghost" onclick="saveLocal()">入力内容を保存</button><button class="ghost" onclick="loadLocal()">保存内容を読込</button><button class="ghost" onclick="window.print()">印刷 / PDF</button></div>
+</div></section>
+
+<section class="card"><div class="cardhead"><h2>計算条件</h2></div><div class="body note">1Φ200V負荷はRS・ST・TRの線間負荷として、120°の位相差を考慮して相電流をベクトル合成します。3Φ200V負荷は力率1.0として I=P×1000÷(√3×V) で計算し、平衡負荷として各相へ加算します。ブレーカーは安全率考慮後電流が定格の80%以下となる容量を選定します。電圧降下は e=30.8×L×I÷(1000×S) の簡易式です。モーター等は力率・効率・始動電流・メーカー指定を別途確認してください。</div></section>
+
+<section class="card"><div class="cardhead"><h2>ホーム画面アプリ</h2></div><div class="body note">
+<div id="pwaStatus">ブラウザからホーム画面へ追加すると、アプリのように全画面で起動できます。</div>
+<div style="margin-top:8px">Android/Chrome：表示される「ホーム画面に追加」ボタン、またはブラウザメニューから追加。iPhone/Safari：共有ボタン →「ホーム画面に追加」。</div>
+</div></section>
+
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let oneLoads=[], threeLoads=[];
+const wireMaster=[
+ {max:23,wire:'CV-3C 2sq',sq:2,amp:23},{max:33,wire:'CV-3C 3.5sq',sq:3.5,amp:33},{max:44,wire:'CV-3C 5.5sq',sq:5.5,amp:44},{max:54,wire:'CV-3C 8sq',sq:8,amp:54},{max:86,wire:'CVT-3C 14sq',sq:14,amp:86},{max:110,wire:'CVT-3C 22sq',sq:22,amp:110},{max:155,wire:'CVT-3C 38sq',sq:38,amp:155},{max:210,wire:'CVT-3C 60sq',sq:60,amp:210}
+];
+function breakerFor(i){if(i<=16)return 20;if(i<=24)return 30;if(i<=32)return 40;if(i<=40)return 50;if(i<=48)return 60;if(i<=60)return 75;if(i<=80)return 100;if(i<=100)return 125;if(i<=120)return 150;if(i<=140)return 175;if(i<=160)return 200;return null}
+function wireForBreaker(b){if(b==null)return null;return wireMaster.find(x=>b<=x.max)||null}
+function add1p(data={name:'',kw:'',qty:1,phase:'RS'}){oneLoads.push(data);render();}
+function add3p(data={name:'',kw:'',qty:1}){threeLoads.push(data);render();}
+function remove1(i){oneLoads.splice(i,1);render()} function remove3(i){threeLoads.splice(i,1);render()}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function render(){
+ const V=+($('voltage').value)||200;
+ $('oneBody').innerHTML=oneLoads.map((x,i)=>{const I=(+x.kw||0)*1000/V*(+x.qty||0),k=(+x.kw||0)*(+x.qty||0);return `<tr><td>${i+1}</td><td><input class="name" value="${esc(x.name)}" oninput="oneLoads[${i}].name=this.value"></td><td><input class="num" type="number" min="0" step="0.01" value="${x.kw}" oninput="oneLoads[${i}].kw=this.value;calculate()"></td><td><input class="num" type="number" min="0" step="1" value="${x.qty}" oninput="oneLoads[${i}].qty=this.value;calculate()"></td><td><select onchange="oneLoads[${i}].phase=this.value;calculate()"><option ${x.phase==='RS'?'selected':''}>RS</option><option ${x.phase==='ST'?'selected':''}>ST</option><option ${x.phase==='TR'?'selected':''}>TR</option></select></td><td class="computed" id="oI${i}">${I.toFixed(2)}</td><td class="computed" id="oK${i}">${k.toFixed(2)}</td><td class="removeCol"><button class="danger mini" onclick="remove1(${i})">削除</button></td></tr>`}).join('');
+ $('threeBody').innerHTML=threeLoads.map((x,i)=>{const I=(+x.kw||0)*1000/(V*Math.sqrt(3))*(+x.qty||0),k=(+x.kw||0)*(+x.qty||0);return `<tr><td>${i+1}</td><td><input class="name" value="${esc(x.name)}" oninput="threeLoads[${i}].name=this.value"></td><td><input class="num" type="number" min="0" step="0.01" value="${x.kw}" oninput="threeLoads[${i}].kw=this.value;calculate()"></td><td><input class="num" type="number" min="0" step="1" value="${x.qty}" oninput="threeLoads[${i}].qty=this.value;calculate()"></td><td class="computed" id="tI${i}">${I.toFixed(2)}</td><td class="computed" id="tK${i}">${k.toFixed(2)}</td><td class="removeCol"><button class="danger mini" onclick="remove3(${i})">削除</button></td></tr>`}).join(''); calculate();
+}
+function calculate(){
+ const V=+$('voltage').value||0,L=+$('distance').value||0,safe=+$('safety').value||0;
+ let rs=0,st=0,tr=0,total=0,threeI=0;
+ oneLoads.forEach((x,i)=>{let kw=+x.kw||0,q=+x.qty||0,I=V?kw*1000/V*q:0,totalK=kw*q;total+=totalK;if(x.phase==='RS')rs+=I;if(x.phase==='ST')st+=I;if(x.phase==='TR')tr+=I;let a=$('oI'+i),b=$('oK'+i);if(a)a.textContent=I.toFixed(2);if(b)b.textContent=totalK.toFixed(2)});
+ threeLoads.forEach((x,i)=>{let kw=+x.kw||0,q=+x.qty||0,I=V?kw*1000/(V*Math.sqrt(3))*q:0,totalK=kw*q;threeI+=I;total+=totalK;let a=$('tI'+i),b=$('tK'+i);if(a)a.textContent=I.toFixed(2);if(b)b.textContent=totalK.toFixed(2)});
+ const r=Math.sqrt(Math.pow(((rs+tr)*Math.sqrt(3)/2)+threeI,2)+Math.pow((rs-tr)/2,2));
+ const s=Math.sqrt(Math.pow(((rs+st)*Math.sqrt(3)/2)+threeI,2)+Math.pow((rs-st)/2,2));
+ const t=Math.sqrt(Math.pow(((st+tr)*Math.sqrt(3)/2)+threeI,2)+Math.pow((st-tr)/2,2));
+ const mx=Math.max(r,s,t), safeI=mx*safe, br=breakerFor(safeI), wm=wireForBreaker(br); const drop=wm&&mx?30.8*L*mx/(1000*wm.sq):0, pct=V?drop/V*100:0;
+ $('totalKW').textContent=total.toFixed(2);$('rA').textContent=r.toFixed(2);$('sA').textContent=s.toFixed(2);$('tA').textContent=t.toFixed(2);$('maxPhase').textContent=mx.toFixed(2);$('safeCurrent').textContent=safeI.toFixed(2);$('breaker').textContent=br?br+' A':'200A超 要設計';$('wire').textContent=wm?wm.wire:'要設計';$('ampacity').textContent=wm?wm.amp:'-';$('dropV').textContent=drop.toFixed(2);$('dropPct').textContent=pct.toFixed(2);
+ const bad=drop>6; $('dropCard').className='metric '+(bad?'bad':'good');$('dropVCard').className='metric '+(bad?'bad':'good');$('dropWarning').className='warning '+(bad?'ng':'ok');$('dropWarning').textContent=bad?'電圧降下注意：6Vを超えています（線径サイズアップを検討）':'電圧降下：6V以内';
+}
+function loadSample(){oneLoads=[{name:'負荷1',kw:1.15,qty:1,phase:'RS'},{name:'負荷2',kw:1.15,qty:1,phase:'ST'},{name:'負荷3',kw:1.15,qty:1,phase:'TR'},{name:'負荷4',kw:1.15,qty:1,phase:'RS'}];threeLoads=[{name:'3Φ負荷1',kw:3.2,qty:1}];$('voltage').value=200;$('distance').value=50;$('safety').value=1.25;render()}
+function resetAll(){oneLoads=[];threeLoads=[];for(let i=0;i<3;i++)add1p({name:'負荷'+(i+1),kw:'',qty:1,phase:['RS','ST','TR'][i]});add3p({name:'3Φ負荷1',kw:'',qty:1});}
+function saveLocal(){localStorage.setItem('elec200app',JSON.stringify({voltage:$('voltage').value,distance:$('distance').value,safety:$('safety').value,oneLoads,threeLoads}));alert('この端末に保存しました。')}
+function loadLocal(){try{let d=JSON.parse(localStorage.getItem('elec200app'));if(!d)return alert('保存データがありません。');$('voltage').value=d.voltage;$('distance').value=d.distance;$('safety').value=d.safety;oneLoads=d.oneLoads||[];threeLoads=d.threeLoads||[];render()}catch(e){alert('保存データを読み込めませんでした。')}}
+['voltage','distance','safety'].forEach(id=>$(id).addEventListener('input',()=>{render()}));
+loadSample();
+
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = $('installBtn');
+  if (btn) btn.style.display = 'inline-block';
+  const s = $('pwaStatus');
+  if (s) s.textContent = 'この端末ではホーム画面へ直接追加できます。';
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  const btn = $('installBtn');
+  if (btn) btn.style.display = 'none';
+  const s = $('pwaStatus');
+  if (s) s.textContent = 'ホーム画面への追加が完了しました。';
+});
+
+async function installApp(){
+  if (deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    const btn = $('installBtn');
+    if (btn) btn.style.display = 'none';
+  } else {
+    showInstallHelp();
+  }
+}
+
+function showInstallHelp(){
+  const ua = navigator.userAgent || '';
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  if (isIOS){
+    alert('iPhone / iPad\\n\\nSafariで開き、画面下の「共有」ボタン →「ホーム画面に追加」→「追加」を選んでください。');
+  } else {
+    alert('Android / PC\\n\\nChrome / Edgeで開き、ブラウザメニューの「アプリをインストール」または「ホーム画面に追加」を選んでください。表示されている場合は画面上部の「ホーム画面に追加」ボタンも使えます。');
+  }
+}
+
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(() => {
+      const s = $('pwaStatus');
+      if (s && !deferredInstallPrompt) s.textContent = 'PWA機能が有効です。ホーム画面に追加してオフラインでも使用できます。';
+    }).catch(() => {});
+  });
+} else if (location.protocol === 'file:') {
+  window.addEventListener('load', () => {
+    const s = $('pwaStatus');
+    if (s) s.textContent = '計算機能はこのまま使えます。ホーム画面アプリとしてインストールするには、このPWA一式をWebサーバー(HTTPS)で公開してください。';
+  });
+}
+
+</script>
+</body></html>
